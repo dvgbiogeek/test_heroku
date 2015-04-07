@@ -1,0 +1,60 @@
+based off of this: https://devcenter.heroku.com/articles/getting-started-with-django
+
+Setup project folder and virtual environment (then activate it)
+
+Install Django and dependencies for Heroku - includes gunicorn and psycopg2 (for the server and postgres python package)
+$ pip install django-toolbelt
+
+Create django app ( . tells django to put in current directory)
+$ django-admin.py startproject djangoname .
+
+Make and edit a Procfile
+web: gunicorn djangoname.wsgi --log-file -
+
+Now the app can be started using Foreman
+$ foreman start
+
+Freeze dependencies
+$ pip freeze > requirements.txt
+
+Edits to settings.py
+# Parse database configuration from $DATABASE_URL
+import dj_database_url
+DATABASES['default'] =  dj_database_url.config()
+
+# Honor the 'X-Forwarded-Proto' header for request.is_secure()
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Allow all host headers
+ALLOWED_HOSTS = ['*']
+
+# Static asset configuration
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_ROOT = 'staticfiles'
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+
+Edits to wsgi.py
+from django.core.wsgi import get_wsgi_application
+from dj_static import Cling
+
+application = Cling(get_wsgi_application())
+
+Put all the files in a git repository
+
+Push code to heroku and deploy code
+$ heroku create
+$ git push heroku master
+
+Set heroku to use 1 dyno
+$ heroku ps:scale web=1
+
+Heroku logs
+$ heroku logs
+
+To run django commands on the heroku server
+$ heroku run python manage.py syncdb
